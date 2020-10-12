@@ -9,7 +9,7 @@ import './App.css';
 const spotify = new SpotifyWebApi();
 
 function App() {
-  const [{ user, token }, dispatch] = useDataLayerContext();
+  const [{ token }, dispatch] = useDataLayerContext();
 
   useEffect(() => {
     const hash = getTokenFromUrl();
@@ -21,6 +21,11 @@ function App() {
       dispatch({
         type: 'SET_TOKEN',
         token: _token
+      });
+
+      dispatch({
+        type: 'SET_SPOTIFY',
+        spotify: spotify
       });
 
       spotify.getMe().then(user => {
@@ -43,7 +48,7 @@ function App() {
         });
       });
     }
-  }, []);
+  }, [token, dispatch]);
 
   return (
     <div className='app'>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import PlayCircleOutlineIcon from '@material-ui/icons/PlayCircleOutline';
 import SkipPreviousIcon from '@material-ui/icons/SkipPrevious';
 import SkipNextIcon from '@material-ui/icons/SkipNext';
@@ -8,9 +8,72 @@ import VolumeDownIcon from '@material-ui/icons/VolumeDown';
 import PauseCircleOutlineIcon from '@material-ui/icons/PauseCircleOutline';
 import PlaylistPlayIcon from '@material-ui/icons/PlaylistPlay';
 import { Grid, Slider } from '@material-ui/core';
+import { useDataLayerContext } from './DataLayer';
 import './Footer.css';
 
-function Footer() {
+function Footer({ spotify }) {
+  const [{ token, item, playing }, dispatch] = useDataLayerContext();
+
+  useEffect(() => {
+    spotify.getMyCurrentPlayingTrack().then(r => {
+      console.log(r);
+
+      dispatch({
+        type: 'SET_PLAYING',
+        playing: r.is_playing
+      });
+
+      dispatch({
+        type: 'SET_ITEM',
+        item: r.item
+      });
+    });
+  }, [spotify]);
+
+  const handlePlayPause = () => {
+    if (playing) {
+      spotify.pause();
+      dispatch({
+        type: 'SET_PLAYING',
+        playing: false
+      });
+    } else {
+      spotify.play();
+      dispatch({
+        type: 'SET_PLAYING',
+        playing: true
+      });
+    }
+  };
+
+  const skipNext = () => {
+    spotify.skipToNext();
+    spotify.getMyCurrentPlayingTrack().then(r => {
+      dispatch({
+        type: 'SET_ITEM',
+        item: r.item
+      });
+      dispatch({
+        type: 'SET_PLAYING',
+        playing: true
+      });
+    });
+  };
+
+  const skipPrevious = () => {
+    spotify.skipToPrevious();
+    spotify.getMyCurrentPlayingTrack().then(r => {
+      dispatch({
+        type: 'SET_ITEM',
+        item: r.item
+      });
+      dispatch({
+        type: 'SET_PLAYING',
+        playing: true
+      });
+    });
+  };
+
   return (
     <div className='footer'>
       <div className='footer__left'>
@@ -26,9 +89,21 @@ function Footer() {
       </div>
       <div className='footer__center'>
         <ShuffleIcon className='footer__green' />
-        <SkipPreviousIcon className='footer__icon' />
-        <PlayCircleOutlineIcon fontSize='large' className='footer__icon' />
-        <SkipNextIcon className='footer__icon' />
+        <SkipPreviousIcon onClick={skipNext} className='footer__icon' />
+        {playing ? (
+          <PauseCircleOutlineIcon
+            onClick={handlePlayPause}
+            fontSize='large'
+            className='footer__icon'
+          />
+        ) : (
+          <PlayCircleOutlineIcon
+            onClick={handlePlayPause}
+            fontSize='large'
+            className='footer__icon'
+          />
+        )}
+        <SkipNextIcon onClick={skipPrevious} className='footer__icon' />
         <RepeatIcon className='footer__green' />
       </div>
       <div className='footer__right'>
