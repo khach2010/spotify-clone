@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import Login from './Login';
-import './App.css';
-import { getTokenFromUrl } from './spotify';
+import React, { useEffect } from 'react';
 import SpotifyWebApi from 'spotify-web-api-js';
+import Login from './Login';
 import Player from './Player';
+import { getTokenFromUrl } from './spotify';
 import { useDataLayerContext } from './DataLayer';
+import './App.css';
 
 const spotify = new SpotifyWebApi();
 
@@ -17,15 +17,23 @@ function App() {
     let _token = hash.access_token;
 
     if (_token) {
+      spotify.setAccessToken(_token);
       dispatch({
         type: 'SET_TOKEN',
         token: _token
       });
-      spotify.setAccessToken(_token);
+
       spotify.getMe().then(user => {
         dispatch({
           type: 'SET_USER',
-          user: user
+          user
+        });
+      });
+
+      spotify.getUserPlaylists().then(playlists => {
+        dispatch({
+          type: 'SET_PLAYLISTS',
+          playlists
         });
       });
     }
@@ -33,7 +41,8 @@ function App() {
 
   return (
     <div className='app'>
-      {token ? <Player spotify={spotify} /> : <Login />}
+      {!token && <Login />}
+      {token && <Player spotify={spotify} />}
     </div>
   );
 }
